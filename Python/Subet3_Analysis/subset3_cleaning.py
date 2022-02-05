@@ -8,7 +8,7 @@ Created on Fri Feb  4 13:33:53 2022
 import pandas as pd
 import numpy as np
 
-datafile = 'subset3_ISED.csv'
+datafile = 'subset_3_ISED.csv'
 
 
 class DataHandler():
@@ -209,11 +209,28 @@ class DataHandler():
 
     def GetData_Sexuality_NoAnswer(self):
         return self.obj.loc[self.obj['BYCOND'] == 'Q122 = 5']
+    
+    def Show_Indicators(self):
+        return list(self.obj.INDICATORENG.unique())
 
+    def GetData_ByIndicator(self, indicator):
+        indicators = self.Show_Indicators()
+        if indicator in indicators == True:
+            return self.obj.loc[self.obj['INDICATORENG'] == '{}'.format(indicator)]
+        else:
+            print('You must pass a valid indicator as a string. Use the Show_Indicators() method to show options.')
+            
+    def Show_Subindicators(self):
+        return list(self.obj.SUBINDICATORENG.unique())
 
-
-
-
+    def GetData_BySubindicator(self, subindicator):
+        subindicators = self.Show_Subindicators()
+        if subindicator in subindicators == True:
+            return self.obj.loc[self.obj['SUBINDICATORENG'] == '{}'.format(subindicator)]
+        else:
+            print('You must pass a valid subindicator as a string. Use the Show_Subindicators() method to show options.')
+#            
+#    def Percent_Positive_by_Demographic_and_Indicator():
 
 
 
