@@ -13,7 +13,8 @@ import time
 
 datafilename = 'subset_3_ISED.csv'
 
-datafile = pd.read_csv(datafilename)
+datafile = sf.Frame.from_pandas(pd.read_csv(datafilename))
+
 
 class DataHandler():
     def __init__(self, dataframe):
@@ -41,11 +42,13 @@ class DataHandler():
     
     #use these functions to filter you master dataset
     
-    def GetData_Gender_Male(self):
-        return self.obj.loc[self.obj['BYCOND'] == 'Q115 = 1']
+    def GetData_Gender_Male(self): ##
+        # return self.obj[self.obj['BYCOND'] == "Q115 = 1"]
+        return self.obj.loc[self.obj['BYCOND'] == "Q115 = 1"]
     
     def GetData_Gender_Female(self):
-        return self.obj.loc[self.obj['BYCOND'] == 'Q115 = 1']
+        # return self.obj[self.obj['BYCOND'] == "Q115 = 2"]
+        return self.obj.loc[self.obj['BYCOND'] == "Q115 = 2"]
     
     def GetData_Gender_Diverse(self):
         return self.obj.loc[self.obj['BYCOND'] == 'Q115 = 3']
@@ -216,7 +219,7 @@ class DataHandler():
         return self.obj.loc[self.obj['BYCOND'] == 'Q122 = 5']
     
     def Show_Indicators(self):
-        return list(self.obj.INDICATORENG.unique())
+        return list(self.obj['INDICATORENG'].unique())
 
     def GetData_ByIndicator(self, indicator):
         indicators = self.Show_Indicators()
@@ -269,36 +272,27 @@ if run == 1:
         df_i[df_indicator_list[i]] = DataHandler(df.GetData_ByIndicator(df_indicator_list[i]))
     time.sleep(0.5)    
     
-    # # bin data by subindicators
-    # now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    # print('{}   |   <Binning data by subindicator.>'.format(now))        
-    # print('-----------------------------------------------------')
-    # df_subindicator_list = df.Show_Subindicators()
-    # print('Subindicators present are: {}'.format(df_subindicator_list))
-    # time.sleep(0.5)   
-    # print('-----------------------------------------------------')
-    # df_si = {}
-    # for i in range(len(df_subindicator_list)):
-    #     df_si[df_subindicator_list[i]] = DataHandler(df.GetData_BySubindicator(df_subindicator_list[i]))
-    # time.sleep(0.5)
-    
+
     
     def weighted_average_score(scorecol, numcol):
 
         holder_score = np.zeros(len(scorecol))
         holder_num = np.zeros(len(scorecol))
         
+        scoreindx = scorecol.index
+        numindx = numcol.index
+        
         for i in range(len(scorecol)):
-            if scorecol[i] == '9999' or scorecol[i] == ' ' or scorecol[i] == None:
+            if scorecol[scoreindx[i]] == '9999' or scorecol[scoreindx[i]] == ' ' or scorecol[scoreindx[i]] == None:
                 holder_score[i] = 0
             else:
-                holder_score[i] = float(scorecol[i])
+                holder_score[i] = scorecol[scoreindx[i]]
                 
         for i in range(len(numcol)):
-            if numcol[i] == '9999' or scorecol[i] == ' ' or scorecol[i] == None:
+            if numcol[numindx[i]] == '9999' or numcol[numindx[i]] == ' ' or numcol[numindx[i]] == None:
                 holder_num[i] = 0
             else:
-                holder_num[i] = numcol[i]
+                holder_num[i] = numcol[numindx[i]]
                         
         
         for i in range(len(scorecol)):
@@ -318,12 +312,29 @@ if run == 1:
             
         
         return round(out, 2)
-        
+
+    def get_intersection(frameA, frameB):
+        a_array = np.array(frameA.index)
+        b_array = np.array(frameB.index)
+        return np.intersect1d(a_array, b_array)
+    
+    def drop_intersection(frameA, frameB): #removes the intersection of two frames from the first frame
+        intersection = get_intersection(frameA, frameB)
+        for i in range(len(intersection)):
+            frameA = frameA.drop.loc[intersection[i]]    
+        return [frameA, frameB]
+
+    def create_intersection_frame(frameA, frameB):
+        intersection_indx = get_intersection(frameA, frameB)
+        out = frameA.loc[intersection_indx[0]]
+        for indx in intersection_indx[1::]:
+            out = sf.Frame.from_concat([out, frameA.loc[indx]])
+        return out        
         
 
     
     # create a list of macro indicators
-    macro_indicator_list = ['Gender', 'Indigeneous', 'Disability', 'VisibleMinority', 'Sexuality']
+    macro_group_list = ['Gender', 'Indigeneous', 'Disability', 'VisibleMinority', 'Sexuality']
     
     macro_Gender = {'_Male' : 0, '_Female' : 0}#, '_Diverse' : 0} --> ISED has no employees who identified as Gender Diverse.
     macro_Indigenous = {'' : 0, '_C' : 0}
@@ -335,7 +346,7 @@ if run == 1:
     macro_subgroups = [macro_Gender, macro_Indigenous, macro_Disability, macro_VisibleMinority, macro_Sexuality]
     
     #create a dict to map macro indicators to their subdivisions
-    macro_groups = {macro_indicator_list[i] : macro_subgroups[i] for i in range(len(macro_indicator_list))}
+    macro_groups = {macro_group_list[i] : macro_subgroups[i] for i in range(len(macro_group_list))}
     
     # create nested dictionary. Keys are the indicators, values are the macro groups
     # macro groups are themselves dicitonaries whose values are the group subdivisions
@@ -343,30 +354,45 @@ if run == 1:
     for i in range(len(df_i)):
         df_macro_i[df_indicator_list[i]] = macro_groups
 
+    
+    # for i in df_indicator_list: #iterate through indicators
+    #     lev3 = []
+    #     for a,j in enumerate(macro_group_list): #iterate through 
+    #         lev2 = df_macro_i[i]
+    #         lev3.append(lev2[j])
+    #         lev4 = []
+    #         for b,k in enumerate(lev3[a]):
+    #             lev4.append(list(lev3[a].keys())[b])
+    
+    
 
-    # created nested nested dictionary. 
-    # Lowest level values are dataframes which are the intersection of sets generated from parent dictionary keys.
-    for i in range(len(df_macro_i)):
-        current_indicator = list(df_macro_i.keys())[i]
-        
-        for j in range(len(macro_indicator_list)):
-            current_macrogroup = macro_indicator_list[j]
-            current_macrosubgroup_dict = macro_subgroups[j]
+    # # created nested nested dictionary. 
+    # # Lowest level values are dataframes which are the intersection of sets generated from parent dictionary keys.
+    # for i in range(len(df_macro_i)):
+    #     current_indicator = df_indicator_list[i]
+    #     for j in range(len(macro_indicator_list)):
+
+    #         for k in range(len(macro_subgroups[j])):
+                
+    #             current_macrogroup = macro_indicator_list[j]
+    #             current_macrosubgroup_dict = macro_subgroups[j]                
+    #             current_macrosubgroup = list(current_macrosubgroup_dict.keys())[k]
+    #             print(k)
+    #             print(current_macrosubgroup)
+                
+    #             df_macro_i[current_indicator][current_macrogroup][current_macrosubgroup] = \
+    #                 create_intersection_frame(df_i[current_indicator].obj, eval('df.GetData_' + \
+    #                 current_macrogroup + current_macrosubgroup + '()'))
+    #             del current_macrosubgroup
             
-            for k in range(len(macro_subgroups[j])):
-                current_macrosubgroup = list(current_macrosubgroup_dict.keys())[k]
+    #         del current_macrosubgroup_dict
+    #         del current_macrogroup
+        
+    #     print(current_indicator)                        
+    #     del current_indicator
+        
                 
-                
-                df_macro_i[current_indicator][current_macrogroup][current_macrosubgroup] = \
-                    pd.merge(df_i[current_indicator].obj, eval('df.GetData_' + \
-                        current_macrogroup + current_macrosubgroup + '()'))
                         
-                        
-                        
-    datafile = sf.Frame.from_pandas(datafile)
-    
-    datafile_immutable = DataHandler(datafile)
-    
     
     # copy for immutable dataframe
     macro_indicator_list = ['Gender', 'Indigeneous', 'Disability', 'VisibleMinority', 'Sexuality']
@@ -390,24 +416,34 @@ if run == 1:
 
     
     for i in range(len(dfi_scores)):
-        
-        current_indicator = list(dfi_scores.keys())[i]
-        
         for j in range(len(macro_indicator_list)):
-            current_macrogroup = macro_indicator_list[j]
-            current_macrosubgroup_dict = macro_subgroups[j]
-            
             for k in range(len(macro_subgroups[j])):
+                current_indicator = list(dfi_scores.keys())[i]
+                current_macrogroup = macro_indicator_list[j]
+                current_macrosubgroup_dict = macro_subgroups[j]       
                 current_macrosubgroup = list(current_macrosubgroup_dict.keys())[k]
+                
+                print('Indicator | {}'.format(current_indicator))
+                print('MacroGroup | {}'.format(current_macrogroup))
+                print('MacroSubGroup | {}'.format(current_macrosubgroup))
+                print('____________________________')
+                
                 print('indicator {} | macrogroup {} | macro subgroup {}'.format(current_indicator, current_macrogroup, current_macrosubgroup))
                 
-                staticscore = sf.Series.from_pandas(df_macro_i[current_indicator][current_macrogroup][current_macrosubgroup]['SCORE100'])
-                staticcount = sf.Series.from_pandas(df_macro_i[current_indicator][current_macrogroup][current_macrosubgroup]['ANSCOUNT'])
+                staticscore = df_macro_i[current_indicator][current_macrogroup][current_macrosubgroup]['SCORE100']
+                staticcount = df_macro_i[current_indicator][current_macrogroup][current_macrosubgroup]['ANSCOUNT']
                 
-                dfi_scores[current_indicator][current_macrogroup][current_macrosubgroup] =  weighted_average_score(staticscore, staticcount)
+                was = weighted_average_score(staticscore, staticcount)
+                dfi_scores[current_indicator][current_macrogroup][current_macrosubgroup] =  was
+                print('(i,j,k) = ({},{},{})'.format(i, j, k))
+                print('AvgScore = {}'.format(was))
 
-                
-    #usage df_macro_i[INDICATOR][macro_group][macro_subgroup_index]
+                del current_indicator
+                del current_macrogroup
+                del current_macrosubgroup_dict
+                del current_macrosubgroup
+                        
+                        
     
     
 else: 
