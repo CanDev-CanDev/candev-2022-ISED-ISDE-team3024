@@ -6,14 +6,18 @@ Created on Fri Feb  4 13:33:53 2022
 """
 
 import pandas as pd
+from datetime import datetime
 import numpy as np
+import time
 
-datafile = 'subset_3_ISED.csv'
+datafilename = 'subset_3_ISED.csv'
 
+datafile = pd.read_csv(datafilename)
 
 class DataHandler():
-    def __init__(self, datafile):
-        self.obj = pd.read_csv(datafile)
+    def __init__(self, dataframe):
+        # full dataframe
+        self.obj = dataframe
         
     def GetData_ByYear(self, year):
         return self.obj.loc[self.obj['SURVEYR'] == int(year)]
@@ -215,7 +219,7 @@ class DataHandler():
 
     def GetData_ByIndicator(self, indicator):
         indicators = self.Show_Indicators()
-        if indicator in indicators == True:
+        if str(indicator) in indicators:
             return self.obj.loc[self.obj['INDICATORENG'] == '{}'.format(indicator)]
         else:
             print('You must pass a valid indicator as a string. Use the Show_Indicators() method to show options.')
@@ -225,15 +229,60 @@ class DataHandler():
 
     def GetData_BySubindicator(self, subindicator):
         subindicators = self.Show_Subindicators()
-        if subindicator in subindicators == True:
+        if str(subindicator) in subindicators:
             return self.obj.loc[self.obj['SUBINDICATORENG'] == '{}'.format(subindicator)]
         else:
             print('You must pass a valid subindicator as a string. Use the Show_Subindicators() method to show options.')
-#            
-#    def Percent_Positive_by_Demographic_and_Indicator():
+            
+            
 
+run = 1
 
-
+if run == 1:
+    
+    
+    
+       
+    # begin data anaylsis
+    input('Will now begin data anlaysis. Press <ENTER> to continue or <Ctrl + c> to exit.')
+    df = DataHandler(datafile)
+    
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    print('{}   |   <Discarding data from previous years.>'.format(now))        
+    time.sleep(0.5)
+    print('-----------------------------------------------------')
+    df = DataHandler(df.GetData_ByYear(2020))
+    print('-----------------------------------------------------')    
+    
+    
+    # bin data by indicators
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    print('{}   |   <Binning data by indicator.>'.format(now))        
+    print('-----------------------------------------------------')
+    df_indicator_list = df.Show_Indicators()
+    print('Indicators present are: {}'.format(df_indicator_list))
+    print('-----------------------------------------------------')
+    time.sleep(0.5)
+    df_i = {}
+    for i in range(len(df_indicator_list)):
+        df_i[df_indicator_list[i]] = DataHandler(df.GetData_ByIndicator(df_indicator_list[i]))
+    time.sleep(0.5)    
+    
+    # bin data by subindicators
+    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    print('{}   |   <Binning data by subindicator.>'.format(now))        
+    print('-----------------------------------------------------')
+    df_subindicator_list = df.Show_Subindicators()
+    print('Subindicators present are: {}'.format(df_subindicator_list))
+    time.sleep(0.5)   
+    print('-----------------------------------------------------')
+    df_si = {}
+    for i in range(len(df_subindicator_list)):
+        df_si[df_subindicator_list[i]] = DataHandler(df.GetData_BySubindicator(df_subindicator_list[i]))
+    time.sleep(0.5)
+    
+else: 
+    print('Data analysis skipped.')
 
 
 
