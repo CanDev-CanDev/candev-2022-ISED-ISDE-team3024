@@ -6,6 +6,7 @@ Created on Fri Feb  4 13:33:53 2022
 """
 
 import pandas as pd
+import static_frame as sf #pip install static-frame
 from datetime import datetime
 import numpy as np
 import time
@@ -40,13 +41,13 @@ class DataHandler():
     
     #use these functions to filter you master dataset
     
-    def GetData_Males(self):
+    def GetData_Gender_Male(self):
         return self.obj.loc[self.obj['BYCOND'] == 'Q115 = 1']
     
-    def GetData_Females(self):
+    def GetData_Gender_Female(self):
         return self.obj.loc[self.obj['BYCOND'] == 'Q115 = 1']
     
-    def GetData_GenderDiverse(self):
+    def GetData_Gender_Diverse(self):
         return self.obj.loc[self.obj['BYCOND'] == 'Q115 = 3']
     
     def GetData_Indigeneous(self):
@@ -235,7 +236,7 @@ class DataHandler():
             print('You must pass a valid subindicator as a string. Use the Show_Subindicators() method to show options.')
             
             
-
+ 
 run = 1
 
 if run == 1:
@@ -268,18 +269,146 @@ if run == 1:
         df_i[df_indicator_list[i]] = DataHandler(df.GetData_ByIndicator(df_indicator_list[i]))
     time.sleep(0.5)    
     
-    # bin data by subindicators
-    now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-    print('{}   |   <Binning data by subindicator.>'.format(now))        
-    print('-----------------------------------------------------')
-    df_subindicator_list = df.Show_Subindicators()
-    print('Subindicators present are: {}'.format(df_subindicator_list))
-    time.sleep(0.5)   
-    print('-----------------------------------------------------')
-    df_si = {}
-    for i in range(len(df_subindicator_list)):
-        df_si[df_subindicator_list[i]] = DataHandler(df.GetData_BySubindicator(df_subindicator_list[i]))
-    time.sleep(0.5)
+    # # bin data by subindicators
+    # now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    # print('{}   |   <Binning data by subindicator.>'.format(now))        
+    # print('-----------------------------------------------------')
+    # df_subindicator_list = df.Show_Subindicators()
+    # print('Subindicators present are: {}'.format(df_subindicator_list))
+    # time.sleep(0.5)   
+    # print('-----------------------------------------------------')
+    # df_si = {}
+    # for i in range(len(df_subindicator_list)):
+    #     df_si[df_subindicator_list[i]] = DataHandler(df.GetData_BySubindicator(df_subindicator_list[i]))
+    # time.sleep(0.5)
+    
+    
+    def weighted_average_score(scorecol, numcol):
+
+        holder_score = np.zeros(len(scorecol))
+        holder_num = np.zeros(len(scorecol))
+        
+        for i in range(len(scorecol)):
+            if scorecol[i] == '9999' or scorecol[i] == ' ' or scorecol[i] == None:
+                holder_score[i] = 0
+            else:
+                holder_score[i] = float(scorecol[i])
+                
+        for i in range(len(numcol)):
+            if numcol[i] == '9999' or scorecol[i] == ' ' or scorecol[i] == None:
+                holder_num[i] = 0
+            else:
+                holder_num[i] = numcol[i]
+                        
+        
+        for i in range(len(scorecol)):
+            if holder_score[i] == 0:
+                holder_num[i] = 0
+                
+        for i in range(len(numcol)):
+            if holder_num[i] == 0:
+                holder_score[i] = 0
+            
+        
+        population = sum(holder_num)
+        out = np.array(np.zeros(len(numcol)))
+        for i in range(len(numcol)):
+            out[i] = holder_score[i] * holder_num[i]
+        out = sum(np.array(out)) / population
+            
+        
+        return round(out, 2)
+        
+        
+
+    
+    # create a list of macro indicators
+    macro_indicator_list = ['Gender', 'Indigeneous', 'Disability', 'VisibleMinority', 'Sexuality']
+    
+    macro_Gender = {'_Male' : 0, '_Female' : 0}#, '_Diverse' : 0} --> ISED has no employees who identified as Gender Diverse.
+    macro_Indigenous = {'' : 0, '_C' : 0}
+    macro_Disability = {'_General' : 0, '_General_C' : 0}
+    macro_VisibleMinority = {'_General' : 0, '_General_C' : 0}
+    macro_Sexuality = {'_Heterosexual' : 0, '_Homosexual' : 0, '_Bisexual' : 0, '_Xsexual' : 0 ,'_NoAnswer' : 0}
+    
+    #create list of subdivisions for each macro indicator
+    macro_subgroups = [macro_Gender, macro_Indigenous, macro_Disability, macro_VisibleMinority, macro_Sexuality]
+    
+    #create a dict to map macro indicators to their subdivisions
+    macro_groups = {macro_indicator_list[i] : macro_subgroups[i] for i in range(len(macro_indicator_list))}
+    
+    # create nested dictionary. Keys are the indicators, values are the macro groups
+    # macro groups are themselves dicitonaries whose values are the group subdivisions
+    df_macro_i = {}
+    for i in range(len(df_i)):
+        df_macro_i[df_indicator_list[i]] = macro_groups
+
+
+    # created nested nested dictionary. 
+    # Lowest level values are dataframes which are the intersection of sets generated from parent dictionary keys.
+    for i in range(len(df_macro_i)):
+        current_indicator = list(df_macro_i.keys())[i]
+        
+        for j in range(len(macro_indicator_list)):
+            current_macrogroup = macro_indicator_list[j]
+            current_macrosubgroup_dict = macro_subgroups[j]
+            
+            for k in range(len(macro_subgroups[j])):
+                current_macrosubgroup = list(current_macrosubgroup_dict.keys())[k]
+                
+                
+                df_macro_i[current_indicator][current_macrogroup][current_macrosubgroup] = \
+                    pd.merge(df_i[current_indicator].obj, eval('df.GetData_' + \
+                        current_macrogroup + current_macrosubgroup + '()'))
+                        
+                        
+                        
+    datafile = sf.Frame.from_pandas(datafile)
+    
+    datafile_immutable = DataHandler(datafile)
+    
+    
+    # copy for immutable dataframe
+    macro_indicator_list = ['Gender', 'Indigeneous', 'Disability', 'VisibleMinority', 'Sexuality']
+    
+    macro_Gender = {'_Male' : 0, '_Female' : 0}#, '_Diverse' : 0} --> ISED has no employees who identified as Gender Diverse.
+    macro_Indigenous = {'' : 0, '_C' : 0}
+    macro_Disability = {'_General' : 0, '_General_C' : 0}
+    macro_VisibleMinority = {'_General' : 0, '_General_C' : 0}
+    macro_Sexuality = {'_Heterosexual' : 0, '_Homosexual' : 0, '_Bisexual' : 0, '_Xsexual' : 0 ,'_NoAnswer' : 0}
+    
+    #create list of subdivisions for each macro indicator
+    macro_subgroups = [macro_Gender, macro_Indigenous, macro_Disability, macro_VisibleMinority, macro_Sexuality]
+    
+    #create a dict to map macro indicators to their subdivisions
+    macro_groups = {macro_indicator_list[i] : macro_subgroups[i] for i in range(len(macro_indicator_list))}
+    
+    dfi_scores = {}
+    for i in range(len(df_i)):
+        dfi_scores[df_indicator_list[i]] = macro_groups
+                        
+
+    
+    for i in range(len(dfi_scores)):
+        
+        current_indicator = list(dfi_scores.keys())[i]
+        
+        for j in range(len(macro_indicator_list)):
+            current_macrogroup = macro_indicator_list[j]
+            current_macrosubgroup_dict = macro_subgroups[j]
+            
+            for k in range(len(macro_subgroups[j])):
+                current_macrosubgroup = list(current_macrosubgroup_dict.keys())[k]
+                print('indicator {} | macrogroup {} | macro subgroup {}'.format(current_indicator, current_macrogroup, current_macrosubgroup))
+                
+                staticscore = sf.Series.from_pandas(df_macro_i[current_indicator][current_macrogroup][current_macrosubgroup]['SCORE100'])
+                staticcount = sf.Series.from_pandas(df_macro_i[current_indicator][current_macrogroup][current_macrosubgroup]['ANSCOUNT'])
+                
+                dfi_scores[current_indicator][current_macrogroup][current_macrosubgroup] =  weighted_average_score(staticscore, staticcount)
+
+                
+    #usage df_macro_i[INDICATOR][macro_group][macro_subgroup_index]
+    
     
 else: 
     print('Data analysis skipped.')
