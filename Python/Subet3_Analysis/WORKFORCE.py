@@ -255,7 +255,7 @@ if run == 1:
     
        
     # begin data anaylsis
-    input('Will now begin data anlaysis. Press <ENTER> to continue or <Ctrl + c> to exit.')
+    print('Will now begin data anlaysis.')
     df = DataHandler(datafile)
     
     now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -271,7 +271,7 @@ if run == 1:
     print('{}   |   <Binning data by indicator.>'.format(now))        
     print('-----------------------------------------------------')
     df_indicator_list = df.Show_Indicators()
-    print('Indicators present are: {}'.format(df_indicator_list))
+    print('Current Indicator is WORKFORCE.')
     print('-----------------------------------------------------')
     time.sleep(0.5)
     df_i = {}

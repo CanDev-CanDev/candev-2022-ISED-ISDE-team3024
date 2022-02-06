@@ -248,7 +248,7 @@ if run == 1:
     
        
     # begin data anaylsis
-    print('Will now begin data anlaysis')
+    print('Will now begin data anlaysis.')
     df = DataHandler(datafile)
     
     now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -264,7 +264,7 @@ if run == 1:
     print('{}   |   <Binning data by indicator.>'.format(now))        
     print('-----------------------------------------------------')
     df_indicator_list = df.Show_Indicators()
-    print('Current Indicator is LEADERSHIP.')
+    print('Current Indicator is EMPLOYEE ENGAGEMENT.')
     print('-----------------------------------------------------')
     time.sleep(0.5)
     df_i = {}
@@ -352,14 +352,14 @@ if run == 1:
     # macro groups are themselves dicitonaries whose values are the group subdivisions
 
     
-    df_LEADERSHIP = df.GetData_ByIndicator('LEADERSHIP')
-    dict_LEADERSHIP = {}
+    df_EMPLOYEE_ENGAGEMENT = df.GetData_ByIndicator('EMPLOYEE ENGAGEMENT')
+    dict_EMPLOYEE_ENGAGEMENT = {}
     for i, group in enumerate(macro_group_list):
-        dict_LEADERSHIP[group] = eval('macro_{}'.format(group))
-        for j,subgroup in enumerate(list(dict_LEADERSHIP[group].keys())):
+        dict_EMPLOYEE_ENGAGEMENT[group] = eval('macro_{}'.format(group))
+        for j,subgroup in enumerate(list(dict_EMPLOYEE_ENGAGEMENT[group].keys())):
             targetdf = eval('df.GetData_' + group + subgroup + '()')
-            outdf = create_intersection_frame(df_LEADERSHIP, targetdf)
-            dict_LEADERSHIP[group][subgroup] = outdf
+            outdf = create_intersection_frame(df_EMPLOYEE_ENGAGEMENT, targetdf)
+            dict_EMPLOYEE_ENGAGEMENT[group][subgroup] = outdf
             del outdf
 
     
@@ -379,19 +379,19 @@ if run == 1:
     macro_groups = {macro_group_list[i] : macro_subgroups[i] for i in range(len(macro_group_list))}
     
     
-    df_LEADERSHIP = df.GetData_ByIndicator('LEADERSHIP')
-    LEADERSHIP_was = {}
+    df_EMPLOYEE_ENGAGEMENT = df.GetData_ByIndicator('EMPLOYEE ENGAGEMENT')
+    EMPLOYEE_ENGAGEMENT_was = {}
     for i, group in enumerate(macro_group_list):
-        LEADERSHIP_was[group] = eval('macro_{}'.format(group))
-        for j,subgroup in enumerate(list(dict_LEADERSHIP[group].keys())):
-            staticscore = dict_LEADERSHIP[group][subgroup]['SCORE100']
-            staticcount = dict_LEADERSHIP[group][subgroup]['ANSCOUNT']
+        EMPLOYEE_ENGAGEMENT_was[group] = eval('macro_{}'.format(group))
+        for j,subgroup in enumerate(list(dict_EMPLOYEE_ENGAGEMENT[group].keys())):
+            staticscore = dict_EMPLOYEE_ENGAGEMENT[group][subgroup]['SCORE100']
+            staticcount = dict_EMPLOYEE_ENGAGEMENT[group][subgroup]['ANSCOUNT']
             was = weighted_average_score(staticscore, staticcount)
-            LEADERSHIP_was[group][subgroup] = was
+            EMPLOYEE_ENGAGEMENT_was[group][subgroup] = was
             del staticcount
             del staticscore
     
-    print(LEADERSHIP_was)
+    print(EMPLOYEE_ENGAGEMENT_was)
 
                         
     
