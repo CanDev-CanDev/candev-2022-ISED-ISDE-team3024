@@ -6,7 +6,7 @@ Created on Fri Feb  4 13:33:53 2022
 """
 
 import pandas as pd
-import static_frame as sf #pip install static-frame
+import static_frame as sf #pip install --user static-frame
 from datetime import datetime
 import numpy as np
 import time
@@ -337,114 +337,63 @@ if run == 1:
     macro_group_list = ['Gender', 'Indigeneous', 'Disability', 'VisibleMinority', 'Sexuality']
     
     macro_Gender = {'_Male' : 0, '_Female' : 0}#, '_Diverse' : 0} --> ISED has no employees who identified as Gender Diverse.
-    macro_Indigenous = {'' : 0, '_C' : 0}
+    macro_Indigeneous = {'' : 0, '_C' : 0}
     macro_Disability = {'_General' : 0, '_General_C' : 0}
     macro_VisibleMinority = {'_General' : 0, '_General_C' : 0}
     macro_Sexuality = {'_Heterosexual' : 0, '_Homosexual' : 0, '_Bisexual' : 0, '_Xsexual' : 0 ,'_NoAnswer' : 0}
     
     #create list of subdivisions for each macro indicator
-    macro_subgroups = [macro_Gender, macro_Indigenous, macro_Disability, macro_VisibleMinority, macro_Sexuality]
+    macro_subgroups = [macro_Gender, macro_Indigeneous, macro_Disability, macro_VisibleMinority, macro_Sexuality]
     
     #create a dict to map macro indicators to their subdivisions
     macro_groups = {macro_group_list[i] : macro_subgroups[i] for i in range(len(macro_group_list))}
     
     # create nested dictionary. Keys are the indicators, values are the macro groups
     # macro groups are themselves dicitonaries whose values are the group subdivisions
-    df_macro_i = {}
-    for i in range(len(df_i)):
-        df_macro_i[df_indicator_list[i]] = macro_groups
 
     
-    # for i in df_indicator_list: #iterate through indicators
-    #     lev3 = []
-    #     for a,j in enumerate(macro_group_list): #iterate through 
-    #         lev2 = df_macro_i[i]
-    #         lev3.append(lev2[j])
-    #         lev4 = []
-    #         for b,k in enumerate(lev3[a]):
-    #             lev4.append(list(lev3[a].keys())[b])
-    
-    
+    df_LEADERSHIP = df.GetData_ByIndicator('LEADERSHIP')
+    dict_LEADERSHIP = {}
+    for i, group in enumerate(macro_group_list):
+        dict_LEADERSHIP[group] = eval('macro_{}'.format(group))
+        for j,subgroup in enumerate(list(dict_LEADERSHIP[group].keys())):
+            targetdf = eval('df.GetData_' + group + subgroup + '()')
+            outdf = create_intersection_frame(df_LEADERSHIP, targetdf)
+            dict_LEADERSHIP[group][subgroup] = outdf
+            del outdf
 
-    # # created nested nested dictionary. 
-    # # Lowest level values are dataframes which are the intersection of sets generated from parent dictionary keys.
-    # for i in range(len(df_macro_i)):
-    #     current_indicator = df_indicator_list[i]
-    #     for j in range(len(macro_indicator_list)):
-
-    #         for k in range(len(macro_subgroups[j])):
-                
-    #             current_macrogroup = macro_indicator_list[j]
-    #             current_macrosubgroup_dict = macro_subgroups[j]                
-    #             current_macrosubgroup = list(current_macrosubgroup_dict.keys())[k]
-    #             print(k)
-    #             print(current_macrosubgroup)
-                
-    #             df_macro_i[current_indicator][current_macrogroup][current_macrosubgroup] = \
-    #                 create_intersection_frame(df_i[current_indicator].obj, eval('df.GetData_' + \
-    #                 current_macrogroup + current_macrosubgroup + '()'))
-    #             del current_macrosubgroup
-            
-    #         del current_macrosubgroup_dict
-    #         del current_macrogroup
-        
-    #     print(current_indicator)                        
-    #     del current_indicator
-        
-                
-                        
     
     # copy for immutable dataframe
-    macro_indicator_list = ['Gender', 'Indigeneous', 'Disability', 'VisibleMinority', 'Sexuality']
+    macro_group_list = ['Gender', 'Indigeneous', 'Disability', 'VisibleMinority', 'Sexuality']
     
     macro_Gender = {'_Male' : 0, '_Female' : 0}#, '_Diverse' : 0} --> ISED has no employees who identified as Gender Diverse.
-    macro_Indigenous = {'' : 0, '_C' : 0}
+    macro_Indigeneous = {'' : 0, '_C' : 0}
     macro_Disability = {'_General' : 0, '_General_C' : 0}
     macro_VisibleMinority = {'_General' : 0, '_General_C' : 0}
     macro_Sexuality = {'_Heterosexual' : 0, '_Homosexual' : 0, '_Bisexual' : 0, '_Xsexual' : 0 ,'_NoAnswer' : 0}
     
     #create list of subdivisions for each macro indicator
-    macro_subgroups = [macro_Gender, macro_Indigenous, macro_Disability, macro_VisibleMinority, macro_Sexuality]
+    macro_subgroups = [macro_Gender, macro_Indigeneous, macro_Disability, macro_VisibleMinority, macro_Sexuality]
     
     #create a dict to map macro indicators to their subdivisions
-    macro_groups = {macro_indicator_list[i] : macro_subgroups[i] for i in range(len(macro_indicator_list))}
+    macro_groups = {macro_group_list[i] : macro_subgroups[i] for i in range(len(macro_group_list))}
     
-    dfi_scores = {}
-    for i in range(len(df_i)):
-        dfi_scores[df_indicator_list[i]] = macro_groups
-                        
+    
+    df_LEADERSHIP = df.GetData_ByIndicator('LEADERSHIP')
+    LEADERSHIP_was = {}
+    for i, group in enumerate(macro_group_list):
+        LEADERSHIP_was[group] = eval('macro_{}'.format(group))
+        for j,subgroup in enumerate(list(dict_LEADERSHIP[group].keys())):
+            staticscore = dict_LEADERSHIP[group][subgroup]['SCORE100']
+            staticcount = dict_LEADERSHIP[group][subgroup]['ANSCOUNT']
+            was = weighted_average_score(staticscore, staticcount)
+            LEADERSHIP_was[group][subgroup] = was
+            del staticcount
+            del staticscore
+    
+    print(LEADERSHIP_was)
 
-    
-    for i in range(len(dfi_scores)):
-        for j in range(len(macro_indicator_list)):
-            for k in range(len(macro_subgroups[j])):
-                current_indicator = list(dfi_scores.keys())[i]
-                current_macrogroup = macro_indicator_list[j]
-                current_macrosubgroup_dict = macro_subgroups[j]       
-                current_macrosubgroup = list(current_macrosubgroup_dict.keys())[k]
-                
-                print('Indicator | {}'.format(current_indicator))
-                print('MacroGroup | {}'.format(current_macrogroup))
-                print('MacroSubGroup | {}'.format(current_macrosubgroup))
-                print('____________________________')
-                
-                print('indicator {} | macrogroup {} | macro subgroup {}'.format(current_indicator, current_macrogroup, current_macrosubgroup))
-                
-                staticscore = df_macro_i[current_indicator][current_macrogroup][current_macrosubgroup]['SCORE100']
-                staticcount = df_macro_i[current_indicator][current_macrogroup][current_macrosubgroup]['ANSCOUNT']
-                
-                was = weighted_average_score(staticscore, staticcount)
-                dfi_scores[current_indicator][current_macrogroup][current_macrosubgroup] =  was
-                print('(i,j,k) = ({},{},{})'.format(i, j, k))
-                print('AvgScore = {}'.format(was))
-
-                del current_indicator
-                del current_macrogroup
-                del current_macrosubgroup_dict
-                del current_macrosubgroup
                         
-                        
-    
     
 else: 
     print('Data analysis skipped.')
