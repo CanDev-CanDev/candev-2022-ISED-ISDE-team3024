@@ -34,7 +34,7 @@ The scores give an indication on ISED's performance in the COMPENSATION indicato
 
 E.g. ISED emplopees who identify as male give a score of 66.84/100. Employees who identify as Bisexual give a score of 59.9/100. 
 
-Employees with disabilities of any type give a score of 57.81/100, whereas the complement (indicated with 'C') give a score of 65.14. This allows the user to infer that job satisfaction for employees with disabilities may benefit from increased compensation.
+Employees with disabilities of any type give a score of 57.81/100, whereas the complement (indicated with 'C') give a score of 65.14. This allows the user to infer that job satisfaction for employees with disabilities may benefit from improved compensation.
   
 ----------------------------------------
 
