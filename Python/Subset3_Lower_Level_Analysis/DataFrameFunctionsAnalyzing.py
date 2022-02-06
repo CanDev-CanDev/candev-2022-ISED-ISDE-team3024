@@ -88,8 +88,8 @@ def analysis_comparison(filters):
 def analysis_top8(df, mode, cols):
     '''
     purpose: output the top8 results
-    mode: "ascending", "descending"
-    cols: "diff. between gaps", 
+    mode: "ascending and diff. between gaps", "descending and diff. between gaps", "ascending and 2020vs2019 gap", "descending and 2020vs2019 gap"
+    cols: "diff. between gaps", "gap: 2020vs2019"
     '''
     if (mode == "ascending and diff. between gaps"):
     	df = df.sort_values(cols).groupby(level=[0,1]).head(8)
