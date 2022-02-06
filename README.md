@@ -42,4 +42,9 @@ COOL STUFF:
   
 The python code to analyze the data throws the csv info into a dataframe, which is then thrown into a custom class. This class has methods which allow you to easily filter the data. For instance dataframe.Get_Gender_Male() returns all the rows of Subset 3 (or a subset of Subset 3) with the BYCOND column entry as "Q115 = 1."
   
+  
+ ----------------------------------------
 
+  COMPARISON WITH OTHER DEPARTMENTS
+  
+  The excel file needed for this functionality is too big for Github (413 MB). Please get in touch with me (Daniel Hutama) if you need the file.
