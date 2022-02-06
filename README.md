@@ -8,6 +8,7 @@ This repository contains Python files to filter data from StatCan's public servi
 Data analysis focused on identifying weighted average Indicator scores (out of 100) for Innovation, Science, and Economic Development Canada (ISED).
 
 The six Indicators of interest are:
+
 COMPENSATION, EMPLOYEE ENGAGEMENT, LEADERSHIP, WORKFORCE, WORKPLACE, WORKPLACE WELL-BEING
 
 These Indicators are groupings of questions in the Survey. The Dataset includes a score out of 100 for each demographic group for each question. This repository contains code to filter, manipulate, and obtain specific data of the information contained in Subset 3.
