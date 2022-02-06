@@ -47,4 +47,4 @@ The python code to analyze the data throws the csv info into a dataframe, which 
 
   COMPARISON WITH OTHER DEPARTMENTS
   
-  The excel file needed for this functionality is too big for Github (413 MB). Please get in touch with me (Daniel Hutama) if you need the file.
+  The excel file needed for this functionality is too big for Github (413 MB). Please get in touch with me (Daniel Hutama) if you need the file. The needed file name is 'subset_3_ISED_C.csv'.  Since this is missing from the GitHub Repo, you will run into errors trying to run <INDICATORNAME_ALL>.py.
